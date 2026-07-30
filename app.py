@@ -1,50 +1,105 @@
-Balance = 5000
+import streamlit as st
 
-def check_balance():
-    print(f"current balance :{Balance}")
-    return Balance
+st.set_page_config(
+    page_title="ATM Management System",
+    page_icon="🏧",
+    layout="centered"
+)
 
+# ---------------- Session State ---------------- #
 
-def deposite_amount():
-    global Balance
-    deposite = int(input("Enter a Number :"))
-    Balance += deposite
-    print(f"current balance after deposite :{Balance}")
-    return Balance
+if "balance" not in st.session_state:
+    st.session_state.balance = 5000
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-def withdrawal_amount():
-    global Balance
-    withdrawal = int(input("Enter a Number :"))
-    if withdrawal > Balance:
-        print("Insufficient Funds")
-    else:
-        Balance -= withdrawal
-    print(f"current balance after withdraw :{Balance}")
-    return Balance
+# ---------------- Title ---------------- #
 
+st.title("🏧 ATM Management System")
 
-pin = int(input("Enter a Pin :"))
+# ---------------- Login ---------------- #
 
-if pin == 1234:
-    while True:
-        choice = int(input(
-            "Enter a choice \n"
-            "1. Check Balance \n"
-            "2. Amount_deposite \n"
-            "3. Withdrawal \n"
-            "4. Exit\n"
-        ))
+if not st.session_state.logged_in:
 
-        if choice == 1:
-            check_balance()
-        elif choice == 2:
-            deposite_amount()
-        elif choice == 3:
-            withdrawal_amount()
-        elif choice == 4:
-            break
+    st.subheader("Login")
+
+    pin = st.text_input("Enter PIN", type="password")
+
+    if st.button("Login", use_container_width=True):
+
+        if pin == "1234":
+            st.session_state.logged_in = True
+            st.success("Login Successful")
+            st.rerun()
+
+        elif pin == "":
+            st.warning("Please enter your PIN.")
+
         else:
-            print("Invalid choice")
+            st.error("Invalid PIN")
+
+# ---------------- ATM Menu ---------------- #
+
 else:
-    print("Invalid Pin")
+
+    st.success("Welcome!")
+
+    option = st.selectbox(
+        "Choose an Option",
+        [
+            "Check Balance",
+            "Deposit Amount",
+            "Withdraw Amount"
+        ]
+    )
+
+    # -------- Check Balance -------- #
+
+    if option == "Check Balance":
+
+        if st.button("Check Balance", use_container_width=True):
+            st.info(f"Current Balance : ₹{st.session_state.balance}")
+
+    # -------- Deposit -------- #
+
+    elif option == "Deposit Amount":
+
+        deposit = st.number_input(
+            "Enter Deposit Amount",
+            min_value=1,
+            value=1,
+            step=1
+        )
+
+        if st.button("Deposit", use_container_width=True):
+            st.session_state.balance += deposit
+            st.success(f"₹{deposit} Deposited Successfully")
+            st.info(f"Available Balance : ₹{st.session_state.balance}")
+
+    # -------- Withdraw -------- #
+
+    elif option == "Withdraw Amount":
+
+        withdraw = st.number_input(
+            "Enter Withdrawal Amount",
+            min_value=1,
+            value=1,
+            step=1
+        )
+
+        if st.button("Withdraw", use_container_width=True):
+
+            if withdraw > st.session_state.balance:
+                st.error("Insufficient Balance")
+
+            else:
+                st.session_state.balance -= withdraw
+                st.success(f"₹{withdraw} Withdrawn Successfully")
+                st.info(f"Available Balance : ₹{st.session_state.balance}")
+
+    st.divider()
+
+    if st.button("Logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
